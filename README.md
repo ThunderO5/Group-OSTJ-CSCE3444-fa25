@@ -4,15 +4,14 @@ Team Name: OSTJ
 
 Idea- An educational Jackbox style game to help retain material
 
-
 Roster:
 
-Oscar - Content Designer/Researcher
+Oscar Garcia - Content Designer/Researcher
 
-Solomon - Team Coordinator
+Solomon Rosenfeld - Team Coordinator
 
-Thunder - Development Coordinator
+Thunder Oyebi - Development Coordinator
 
-Jessi - Tester/Quality Assurance
+Jessi Aguirre - Tester/Quality Assurance
 
 Trello Board Link: https://trello.com/b/cUGZTToW/group-ostj-project-csce3444-fa25
