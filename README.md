@@ -2,7 +2,7 @@
 
 Team Name: OSTJ
 
-Idea- An educational Jackbox style game to help retain/challenge material
+Idea- An educational Jackbox style game to help retain material
 
 
 Roster:
