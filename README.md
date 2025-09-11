@@ -6,6 +6,7 @@ Idea- An educatinal Jackbox game to help retain material
 
 
 Roster:
+
 Oscar - Content Designer/Researcher
 
 Solomon - Team Coordinator
