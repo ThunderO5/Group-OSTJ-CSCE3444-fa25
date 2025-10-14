@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JOST-Box</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Home Page -->
+        <div id="home-page">
+            <h1>Welcome to JOST-Box!</h1>
+            <button id="host-btn">Host a Game</button>
+            <button id="join-btn">Join a Game</button>
+        </div>
+
+        <!-- Host Game Page -->
+        <div id="host-page" class="hidden">
+            <h2>Host a New Game</h2>
+            <textarea id="questions-input" placeholder="Enter your questions here, one per line. Format: Question|Answer"></textarea>
+            <button id="create-game-btn">Create Game</button>
+        </div>
+
+        <!-- Lobby Page -->
+        <div id="lobby-page" class="hidden">
+            <h2>Lobby</h2>
+            <p>Game PIN: <span id="game-pin"></span></p>
+            <h3>Players:</h3>
+            <ul id="player-list"></ul>
+            <button id="start-game-btn">Start Game</button>
+        </div>
+
+        <!-- Join Game Page -->
+        <div id="join-page" class="hidden">
+            <h2>Join a Game</h2>
+            <input type="text" id="pin-input" placeholder="Enter Game PIN">
+            <input type="text" id="name-input" placeholder="Enter Your Name">
+            <button id="join-game-btn">Join</button>
+        </div>
+
+        <!-- Game Page (Player) -->
+        <div id="game-page-player" class="hidden">
+            <h2 id="question-text"></h2>
+            <input type="text" id="answer-input" placeholder="Your Answer">
+            <button id="submit-answer-btn">Submit</button>
+        </div>
+
+        <!-- Game Page (Host) -->
+        <div id="game-page-host" class="hidden">
+            <h2 id="host-question-text"></h2>
+            <h3>Answers:</h3>
+            <ul id="host-answer-list"></ul>
+            <button id="next-question-btn">Next Question</button>
+        </div>
+
+        <!-- Results Page -->
+        <div id="results-page" class="hidden">
+            <h2>Game Over!</h2>
+            <h3>Final Scores:</h3>
+            <ul id="results-list"></ul>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
