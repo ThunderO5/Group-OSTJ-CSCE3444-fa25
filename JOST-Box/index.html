@@ -16,6 +16,13 @@
         <!-- Host Game Page -->
         <div id="host-page" class="hidden">
             <h2>Host a New Game</h2>
+            <label for="question-bank-select">Load a question bank (optional):</label>
+            <div class="question-bank-controls">
+                <select id="question-bank-select">
+                    <option value="">-- Select template and category --</option>
+                </select>
+                <button id="load-bank-btn">Load Questions</button>
+            </div>
             <textarea id="questions-input" placeholder="Enter your questions here, one per line. Format: Question|Answer"></textarea>
             <button id="create-game-btn">Create Game</button>
         </div>
@@ -67,7 +74,7 @@
             <button id="close-game-btn">Close Game</button>
         </div>
     </div>
-
+    <script src="questionBanks.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

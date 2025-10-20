@@ -25,6 +25,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const votingOptionsList = document.getElementById('voting-options');
     const questionText = document.getElementById('question-text');
     const answerInput = document.getElementById('answer-input');
+    const bankSelect = document.getElementById('question-bank-select');
+    const loadBankBtn = document.getElementById('load-bank-btn');
+
+
+    function populateQuestionBanks() {
+      if (!window.QUESTION_BANKS || !bankSelect) return;
+      Object.entries(window.QUESTION_BANKS).forEach(([template, categories]) => {
+        Object.keys(categories).forEach(category => {
+          const option = document.createElement('option');
+          option.value = `${template}.${category}`;
+          option.textContent = `${template} — ${category}`;
+          bankSelect.appendChild(option);
+        });
+      });
+    }
+    populateQuestionBanks();
+
+    if (loadBankBtn) {
+      loadBankBtn.addEventListener('click', () => {
+        const value = bankSelect?.value;
+        const textarea = document.getElementById('questions-input');
+        if (!textarea) return;
+
+        if (!value) {
+          textarea.value = '';
+          return;
+        }
+
+        const [template, category] = value.split('.');
+        const bank = window.QUESTION_BANKS?.[template]?.[category] || [];
+        textarea.value = bank.map(q => `${q.question} | ${q.answer}`).join('\n');
+      });
+    }
 
     // --- Game State ---
     let gamePin = '';
@@ -47,12 +80,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Host Creates Game ---
     createGameBtn.addEventListener('click', () => {
         gamePin = Math.floor(1000 + Math.random() * 9000).toString();
-        const questionsRaw = document.getElementById('questions-input').value;
-        const questions = questionsRaw.split('\n').filter(line => line.includes('|')).map(line => {
-            const [question, answer] = line.split('|');
-            return { question: question.trim(), answer: answer.trim(), playerAnswers: {}, votes: {}, phase: 'collectingAnswers' };
-        });
+        const textarea = document.getElementById('questions-input');
+        const questionsRaw = textarea ? textarea.value : '';
+        let questions = questionsRaw
+          .split('\n')
+          .filter(line => line.includes('|'))
+          .map(line => {
+              const [question, answer] = line.split('|');
+              return {
+                  question: question.trim(),
+                  answer: answer.trim(),
+                  playerAnswers: {},
+                  votes: {},
+                  phase: 'collectingAnswers'
+              };
+          });
 
+      if (questions.length === 0 && bankSelect && bankSelect.value) {
+          const [template, category] = bankSelect.value.split('.');
+          questions = (window.QUESTION_BANKS?.[template]?.[category] || []).map(item => ({
+              question: item.question,
+              answer: item.answer,
+              playerAnswers: {},
+              votes: {},
+              phase: 'collectingAnswers'
+          }));
+      }
         if (questions.length === 0) {
             alert('Please add at least one question in the format: Question|Answer');
             return;
