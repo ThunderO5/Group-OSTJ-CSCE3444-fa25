@@ -18,6 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const joinGameBtn = document.getElementById('join-game-btn');
     const submitAnswerBtn = document.getElementById('submit-answer-btn');
     const nextQuestionBtn = document.getElementById('next-question-btn');
+    const openVotingBtn = document.getElementById('open-voting-btn');
+    const closeRoundBtn = document.getElementById('close-round-btn');
+    const closeGameBtn = document.getElementById('close-game-btn');
+    const votingSection = document.getElementById('voting-section');
+    const votingOptionsList = document.getElementById('voting-options');
+    const questionText = document.getElementById('question-text');
+    const answerInput = document.getElementById('answer-input');
 
     // --- Game State ---
     let gamePin = '';
@@ -43,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const questionsRaw = document.getElementById('questions-input').value;
         const questions = questionsRaw.split('\n').filter(line => line.includes('|')).map(line => {
             const [question, answer] = line.split('|');
-            return { question, answer, playerAnswers: {} };
+            return { question: question.trim(), answer: answer.trim(), playerAnswers: {}, votes: {}, phase: 'collectingAnswers' };
         });
 
         if (questions.length === 0) {
@@ -57,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
             players: [],
             currentQuestion: -1, // Lobby state
             status: 'lobby',
+            history: []
         };
 
         localStorage.setItem(gamePin, JSON.stringify(gameState));
@@ -68,8 +76,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Host Starts Game ---
     startGameBtn.addEventListener('click', () => {
         const gameState = JSON.parse(localStorage.getItem(gamePin));
-        gameState.status = 'playing';
+        gameState.status = 'answering';
         gameState.currentQuestion = 0;
+        gameState.questions[0].phase = 'collectingAnswers';
         localStorage.setItem(gamePin, JSON.stringify(gameState));
     });
 
@@ -87,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // If game starts, switch to host game view
-        if (gameState.status === 'playing') {
+        if (gameState.status === 'answering' || gameState.status === 'voting' || gameState.status === 'roundComplete') {
             clearInterval(gameInterval);
             gameInterval = setInterval(hostGameLoop, 1000);
             showPage('gameHost');
@@ -110,29 +119,49 @@ document.addEventListener('DOMContentLoaded', () => {
         // Display player answers
         const answerList = document.getElementById('host-answer-list');
         answerList.innerHTML = '';
+        const voteTotals = calculateVotes(question);
         Object.entries(question.playerAnswers).forEach(([name, answer]) => {
             const li = document.createElement('li');
-            li.textContent = `${name}: ${answer}`;
+            const votes = voteTotals[name] || 0;
+            li.textContent = `${name}: ${answer} ${gameState.status !== 'answering' ? `(Votes: ${votes})` : ''}`;
             answerList.appendChild(li);
         });
+
+        updateHostControls(gameState.status);
     }
-    
+
     nextQuestionBtn.addEventListener('click', () => {
+        const gameState = JSON.parse(localStorage.getItem(gamePin));
+        if (gameState.status !== 'roundComplete') {
+            alert('Complete the current round before moving on.');
+            return;
+        }
+        advanceToNextQuestion(gameState);
+    });
+
+    openVotingBtn.addEventListener('click', () => {
         const gameState = JSON.parse(localStorage.getItem(gamePin));
         const currentQuestion = gameState.questions[gameState.currentQuestion];
 
-        // Grade answers
-        gameState.players.forEach(player => {
-            const playerAnswer = currentQuestion.playerAnswers[player.name];
-            if (playerAnswer && playerAnswer.toLowerCase() === currentQuestion.answer.toLowerCase()) {
-                player.score += 10;
-            }
-        });
+        if (Object.keys(currentQuestion.playerAnswers).length === 0) {
+            alert('No answers submitted yet. Wait for players before opening voting.');
+            return;
+        }
 
-        gameState.currentQuestion++;
+        currentQuestion.phase = 'voting';
+        gameState.status = 'voting';
         localStorage.setItem(gamePin, JSON.stringify(gameState));
+        updateHostControls('voting');
     });
 
+    closeRoundBtn.addEventListener('click', () => {
+        const gameState = JSON.parse(localStorage.getItem(gamePin));
+        if (gameState.status !== 'voting') {
+            alert('The round is not ready to be finalized yet.');
+            return;
+        }
+        finalizeRound(gameState);
+    });
 
     // --- Player Joins Game ---
     joinGameBtn.addEventListener('click', () => {
@@ -159,9 +188,11 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem(gamePin, JSON.stringify(gameState));
         
         showPage('gamePlayer');
-        document.getElementById('question-text').textContent = 'Waiting for host to start...';
+        questionText.textContent = 'Waiting for host to start...';
         submitAnswerBtn.classList.add('hidden');
-        document.getElementById('answer-input').classList.add('hidden');
+        answerInput.classList.add('hidden');
+        answerInput.value = '';
+        votingSection.classList.add('hidden');
 
         gameInterval = setInterval(playerGameLoop, 1000);
     });
@@ -171,32 +202,87 @@ document.addEventListener('DOMContentLoaded', () => {
         const gameState = JSON.parse(localStorage.getItem(gamePin));
         if (!gameState) return;
 
-        if (gameState.status === 'playing') {
+        if (gameState.status === 'answering') {
             const question = gameState.questions[gameState.currentQuestion];
             if (question) {
-                document.getElementById('question-text').textContent = question.question;
-                submitAnswerBtn.classList.remove('hidden');
-                document.getElementById('answer-input').classList.remove('hidden');
+                questionText.textContent = question.question;
+                votingSection.classList.add('hidden');
+
+                if (question.playerAnswers[playerName]) {
+                    submitAnswerBtn.classList.add('hidden');
+                    answerInput.classList.add('hidden');
+                    questionText.textContent = 'Answer submitted! Waiting for other players...';
+                } else {
+                    if (answerInput.classList.contains('hidden')) {
+                        answerInput.value = '';
+                    }
+                    submitAnswerBtn.classList.remove('hidden');
+                    answerInput.classList.remove('hidden');
+                }
             }
         }
-        
+
+        if (gameState.status === 'voting') {
+            const question = gameState.questions[gameState.currentQuestion];
+            questionText.textContent = 'Time to vote!';
+            submitAnswerBtn.classList.add('hidden');
+            answerInput.classList.add('hidden');
+            renderVotingOptions(question);
+        }
+
+        if (gameState.status === 'roundComplete') {
+            submitAnswerBtn.classList.add('hidden');
+            answerInput.classList.add('hidden');
+            votingSection.classList.add('hidden');
+            questionText.textContent = 'Waiting for the next question...';
+        }
+
         if (gameState.status === 'finished') {
             showResults();
         }
     }
     
     submitAnswerBtn.addEventListener('click', () => {
-        const answer = document.getElementById('answer-input').value;
+        const answer = answerInput.value;
+        const gameState = JSON.parse(localStorage.getItem(gamePin));
+        if (!gameState || gameState.status !== 'answering') {
+            alert('You cannot submit an answer right now.');
+            return;
+        }
+
+        if (!answer.trim()) {
+            alert('Please enter an answer.');
+            return;
+        }
+
+        const question = gameState.questions[gameState.currentQuestion];
+        if (question.playerAnswers[playerName]) {
+            alert('You have already submitted an answer for this question.');
+            return;
+        }
+
+        question.playerAnswers[playerName] = answer.trim();
+        localStorage.setItem(gamePin, JSON.stringify(gameState));
+
+        questionText.textContent = 'Answer submitted! Waiting for next question...';
+        submitAnswerBtn.classList.add('hidden');
+        answerInput.classList.add('hidden');
+        answerInput.value = '';
+    });
+
+    votingOptionsList.addEventListener('click', (event) => {
+        if (event.target.tagName !== 'BUTTON') return;
+
+        const targetName = event.target.getAttribute('data-player');
+        if (!targetName) return;
+
         const gameState = JSON.parse(localStorage.getItem(gamePin));
         const question = gameState.questions[gameState.currentQuestion];
 
-        question.playerAnswers[playerName] = answer;
+        if (question.votes[playerName]) return; // already voted
+        question.votes[playerName] = targetName;
         localStorage.setItem(gamePin, JSON.stringify(gameState));
-
-        document.getElementById('question-text').textContent = 'Answer submitted! Waiting for next question...';
-        submitAnswerBtn.classList.add('hidden');
-        document.getElementById('answer-input').classList.add('hidden');
-        document.getElementById('answer-input').value = '';
+        renderVotingOptions(question);
     });
 
     // --- Results ---
@@ -217,12 +303,138 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         showPage('results');
-        
-        // Clean up local storage after a delay
-        if(isHost) {
-            setTimeout(() => {
-                localStorage.removeItem(gamePin);
-            }, 5000);
+        persistResults(gameState);
+    }
+
+    closeGameBtn.addEventListener('click', () => {
+        if (!isHost) {
+            showPage('home');
+            return;
         }
+
+        localStorage.removeItem(gamePin);
+        localStorage.removeItem(`${gamePin}-results`);
+        showPage('home');
+    });
+
+    function updateHostControls(status) {
+        if (status === 'answering') {
+            openVotingBtn.classList.remove('hidden');
+            closeRoundBtn.classList.add('hidden');
+            nextQuestionBtn.classList.add('hidden');
+        } else if (status === 'voting') {
+            openVotingBtn.classList.add('hidden');
+            closeRoundBtn.classList.remove('hidden');
+            nextQuestionBtn.classList.add('hidden');
+        } else if (status === 'roundComplete') {
+            openVotingBtn.classList.add('hidden');
+            closeRoundBtn.classList.add('hidden');
+            nextQuestionBtn.classList.remove('hidden');
+        } else {
+            openVotingBtn.classList.add('hidden');
+            closeRoundBtn.classList.add('hidden');
+            nextQuestionBtn.classList.add('hidden');
+        }
+    }
+
+    function calculateVotes(question) {
+        const voteTotals = {};
+        Object.values(question.votes || {}).forEach(votedFor => {
+            if (!votedFor) return;
+            voteTotals[votedFor] = (voteTotals[votedFor] || 0) + 1;
+        });
+        return voteTotals;
+    }
+
+    function renderVotingOptions(question) {
+        votingSection.classList.remove('hidden');
+        votingOptionsList.innerHTML = '';
+
+        const answers = Object.entries(question.playerAnswers);
+        const availableOptions = answers.filter(([name]) => name !== playerName);
+
+        if (availableOptions.length === 0) {
+            const li = document.createElement('li');
+            li.textContent = 'No other answers to vote on yet.';
+            votingOptionsList.appendChild(li);
+            return;
+        }
+
+        const playerVote = question.votes[playerName];
+
+        availableOptions.forEach(([name, answer]) => {
+            const li = document.createElement('li');
+            const button = document.createElement('button');
+            button.textContent = `${name}: ${answer}`;
+            button.setAttribute('data-player', name);
+            if (playerVote === name) {
+                button.disabled = true;
+                button.textContent += ' (Voted)';
+            }
+            li.appendChild(button);
+            votingOptionsList.appendChild(li);
+        });
+    }
+
+    function finalizeRound(gameState) {
+        const currentQuestion = gameState.questions[gameState.currentQuestion];
+        const voteTotals = calculateVotes(currentQuestion);
+        let maxVotes = 0;
+
+        Object.values(voteTotals).forEach(count => {
+            if (count > maxVotes) maxVotes = count;
+        });
+
+        gameState.players.forEach(player => {
+            const playerAnswer = currentQuestion.playerAnswers[player.name];
+            const votes = voteTotals[player.name] || 0;
+
+            if (playerAnswer && playerAnswer.toLowerCase() === currentQuestion.answer.toLowerCase()) {
+                player.score += 10; // Correct answer bonus
+            }
+
+            if (maxVotes > 0 && votes === maxVotes) {
+                player.score += 5; // Popular vote bonus
+            }
+        });
+
+        gameState.history.push({
+            question: currentQuestion.question,
+            correctAnswer: currentQuestion.answer,
+            votes: voteTotals,
+            answers: { ...currentQuestion.playerAnswers }
+        });
+
+        currentQuestion.phase = 'closed';
+        gameState.status = 'roundComplete';
+        localStorage.setItem(gamePin, JSON.stringify(gameState));
+        updateHostControls('roundComplete');
+    }
+
+    function advanceToNextQuestion(gameState) {
+        if (gameState.currentQuestion + 1 >= gameState.questions.length) {
+            gameState.status = 'finished';
+            localStorage.setItem(gamePin, JSON.stringify(gameState));
+            showResults();
+            return;
+        }
+
+        gameState.currentQuestion++;
+        const nextQuestion = gameState.questions[gameState.currentQuestion];
+        nextQuestion.phase = 'collectingAnswers';
+        nextQuestion.playerAnswers = {};
+        nextQuestion.votes = {};
+
+        gameState.status = 'answering';
+        localStorage.setItem(gamePin, JSON.stringify(gameState));
+        updateHostControls('answering');
+    }
+
+    function persistResults(gameState) {
+        const summary = {
+            players: gameState.players.map(player => ({ name: player.name, score: player.score })),
+            rounds: gameState.history
+        };
+        localStorage.setItem(`${gamePin}-results`, JSON.stringify(summary));
     }
 });

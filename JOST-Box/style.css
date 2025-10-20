@@ -52,3 +52,19 @@ li {
     background-color: #f9f9f9;
     border-radius: 4px;
 }
+
+.helper-text {
+    font-size: 14px;
+    color: #666;
+    margin-top: 10px;
+}
+
+#voting-options li {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#voting-options button {
+    width: 100%;
+}
