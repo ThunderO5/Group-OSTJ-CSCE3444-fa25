@@ -68,3 +68,23 @@ li {
 #voting-options button {
     width: 100%;
 }
+
+/* Small about button at bottom of screen */
+.about-link {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+
+.about-link button {
+    padding: 5px 15px;
+    font-size: 12px;
+    background-color: #6c757d;
+    opacity: 0.8;
+}
+
+.about-link button:hover {
+    opacity: 1;
+}
