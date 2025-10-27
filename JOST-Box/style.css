@@ -88,3 +88,9 @@ li {
 .about-link button:hover {
     opacity: 1;
 }
+
+#grade-chart {
+    max-width: 500px;
+    margin: 20px auto;
+}
+
