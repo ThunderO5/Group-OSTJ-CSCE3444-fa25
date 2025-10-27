@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const answerInput = document.getElementById('answer-input');
     const bankSelect = document.getElementById('question-bank-select');
     const loadBankBtn = document.getElementById('load-bank-btn');
+    const voteEndSound = document.getElementById('vote-end-sound');
 
 
     function populateQuestionBanks() {
@@ -430,6 +431,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function finalizeRound(gameState) {
+        // Play sound when voting ends
+        if (voteEndSound) {
+            voteEndSound.currentTime = 0; // Reset to start
+            voteEndSound.play().catch(err => console.log('Audio play failed:', err));
+        }
         const currentQuestion = gameState.questions[gameState.currentQuestion];
         const voteTotals = calculateVotes(currentQuestion);
         let maxVotes = 0;
