@@ -340,25 +340,67 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Results ---
+  
     function showResults() {
-        clearInterval(gameInterval);
-        const gameState = JSON.parse(localStorage.getItem(gamePin));
-        
-        const resultsList = document.getElementById('results-list');
-        resultsList.innerHTML = '';
+    clearInterval(gameInterval);
+    const gameState = JSON.parse(localStorage.getItem(gamePin));
+    
+    const resultsList = document.getElementById('results-list');
+    resultsList.innerHTML = '';
 
-        // Sort players by score
-        gameState.players.sort((a, b) => b.score - a.score);
+    // Sort players by score
+    gameState.players.sort((a, b) => b.score - a.score);
 
-        gameState.players.forEach(player => {
-            const li = document.createElement('li');
-            li.textContent = `${player.name}: ${player.score}`;
-            resultsList.appendChild(li);
-        });
+    gameState.players.forEach(player => {
+        const li = document.createElement('li');
+        li.textContent = `${player.name}: ${player.score}`;
+        resultsList.appendChild(li);
+    });
 
-        showPage('results');
-        persistResults(gameState);
-    }
+    showPage('results');
+    persistResults(gameState);
+
+    // ---- NEW: Display simple chart ----
+    const ctx = document.getElementById('grade-chart').getContext('2d');
+    const labels = gameState.players.map(p => p.name);
+    const scores = gameState.players.map(p => p.score);
+
+    // Basic accuracy estimation: score out of total possible points
+    const totalPossible = gameState.questions.length * 15; // 10 correct + 5 vote bonus
+    const accuracy = scores.map(s => ((s / totalPossible) * 100).toFixed(1));
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Score',
+                    data: scores,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                },
+                {
+                    label: 'Accuracy (%)',
+                    data: accuracy,
+                    backgroundColor: 'rgba(255, 206, 86, 0.6)'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            },
+            plugins: {
+                legend: { position: 'bottom' },
+                title: {
+                    display: true,
+                    text: 'Final Game Performance'
+                }
+            }
+        }
+    });
+}
 
     closeGameBtn.addEventListener('click', () => {
         if (!isHost) {
