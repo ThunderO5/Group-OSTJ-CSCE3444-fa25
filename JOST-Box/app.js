@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.keys(categories).forEach(category => {
           const option = document.createElement('option');
           option.value = `${template}.${category}`;
-          option.textContent = `${template} — ${category}`;
+          option.textContent = `${template} - ${category}`;
           bankSelect.appendChild(option);
         });
       });
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        gameState.players.push({ name: playerName, score: 0 });
+        gameState.players.push({ name: playerName, score: 0, winstreak: 0 });
         localStorage.setItem(gamePin, JSON.stringify(gameState));
         
         showPage('gamePlayer');
@@ -492,6 +492,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (playerAnswer && playerAnswer.toLowerCase() === currentQuestion.answer.toLowerCase()) {
                 player.score += 10; // Correct answer bonus
+                player.winstreak = (player.winstreak || 0) + 1;
+                if (player.winstreak >= 2) {
+                    player.score += 5; // Winstreak bonus
+                }
+            } else {
+                player.winstreak = 0; // Reset winstreak on incorrect answer
             }
 
             if (maxVotes > 0 && votes === maxVotes) {
