@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>JOST-Box</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <audio id="vote-end-sound" preload="auto">
+        <source src="sounds/ding.mp3" type="audio/mpeg">
+    </audio>
+    <div id="app">
+        <!-- Home Page -->
+        <div id="home-page">
+            <h1>Welcome to JOST-Box!</h1>
+            <button id="host-btn">Host a Game</button>
+            <button id="join-btn">Join a Game</button>
+            <a href="about.html" class="about-link"><button>About</button></a>
+        </div>
+
+        <!-- Host Game Page -->
+        <div id="host-page" class="hidden">
+            <h2>Host a New Game</h2>
+            <label for="question-bank-select">Load a question bank (optional):</label>
+            <div class="question-bank-controls">
+                <select id="question-bank-select">
+                    <option value="">-- Select template and category --</option>
+                </select>
+                <button id="load-bank-btn">Load Questions</button>
+            </div>
+            <label> <textarea id="questions-input" placeholder="Enter your questions here, one per line. Format: Question|Answer"></textarea> </label>
+            <button id="create-game-btn">Create Game</button>
+        </div>
+
+        <!-- Lobby Page -->
+        <div id="lobby-page" class="hidden">
+            <h2>Lobby</h2>
+            <p>Game PIN: <span id="game-pin"></span></p>
+            <h3>Players:</h3>
+            <ul id="player-list"></ul>
+            <button id="start-game-btn">Start Game</button>
+        </div>
+
+        <!-- Join Game Page -->
+        <div id="join-page" class="hidden">
+            <h2>Join a Game</h2>
+            <label> <input type="text" id="pin-input" placeholder="Enter Game PIN"> </label>
+            <label> <input type="text" id="name-input" placeholder="Enter Your Name"> </label>
+            <button id="join-game-btn">Join</button>
+        </div>
+
+        <!-- Game Page (Player) -->
+        <div id="game-page-player" class="hidden">
+            <h2 id="question-text"></h2>
+           <label> <input type="text" id="answer-input" placeholder="Your Answer"> </label> 
+            <button id="submit-answer-btn">Submit</button>
+            <div id="voting-section" class="hidden">
+                <h3>Vote for the best answer</h3>
+                <p class="helper-text">You cannot vote for your own answer.</p>
+                <ul id="voting-options"></ul>
+            </div>
+        </div>
+
+        <!-- Game Page (Host) -->
+        <div id="game-page-host" class="hidden">
+            <h2 id="host-question-text"></h2>
+            <h3>Answers:</h3>
+            <ul id="host-answer-list"></ul>
+            <button id="open-voting-btn">Open Voting</button>
+            <button id="close-round-btn" class="hidden">Finish Round</button>
+            <button id="next-question-btn" class="hidden">Next Question</button>
+        </div>
+
+        <!-- Results Page -->
+        <div id="results-page" class="hidden">
+            <h2>Game Over!</h2>
+            <h3>Final Scores:</h3>
+            <ul id="results-list"></ul>
+            <h3>Performance Chart:</h3>
+            <canvas id="grade-chart" width="400" height="200"></canvas>
+            <button id="close-game-btn">Close Game</button>
+    </div>
+    <script src="questionBanks.js"></script>
+    <script src="app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>
