@@ -83,6 +83,7 @@ li {
     font-size: 12px;
     background-color: #6c757d;
     opacity: 0.8;
+    color: yellow;
 }
 
 .about-link button:hover {
