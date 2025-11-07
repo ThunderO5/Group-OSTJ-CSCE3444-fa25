@@ -27,10 +27,7 @@
                 </select>
                 <button id="load-bank-btn">Load Questions</button>
             </div>
-            <label>
-              Questions
-              <textarea id="questions-input" placeholder="Enter your questions here, one per line. Format: Question|Answer"></textarea>
-            </label>
+            <label> <textarea id="questions-input" placeholder="Enter your questions here, one per line. Format: Question|Answer"></textarea> </label>
             <button id="create-game-btn">Create Game</button>
         </div>
 
@@ -46,24 +43,15 @@
         <!-- Join Game Page -->
         <div id="join-page" class="hidden">
             <h2>Join a Game</h2>
-            <label>
-              Game PIN
-             <input type="text" id="pin-input" placeholder="Enter Game PIN"> 
-           </label>
-            <label>
-              Your Name
-             <input type="text" id="name-input" placeholder="Enter Your Name">
-            </label>
+            <label> <input type="text" id="pin-input" placeholder="Enter Game PIN"> </label>
+            <label> <input type="text" id="name-input" placeholder="Enter Your Name"> </label>
             <button id="join-game-btn">Join</button>
         </div>
 
         <!-- Game Page (Player) -->
         <div id="game-page-player" class="hidden">
             <h2 id="question-text"></h2>
-           <label>
-             Your Answer
-             <input type="text" id="answer-input" placeholder="Your Answer"> 
-          </label>
+           <label> <input type="text" id="answer-input" placeholder="Your Answer"> </label> 
             <button id="submit-answer-btn">Submit</button>
             <div id="voting-section" class="hidden">
                 <h3>Vote for the best answer</h3>
