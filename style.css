@@ -78,6 +78,7 @@ li {
     z-index: 1000;
 }
 
+/*
 .about-link button {
     padding: 5px 15px;
     opacity: 0.8;
@@ -86,6 +87,7 @@ li {
 .about-link button:hover {
     opacity: 1;
 }
+*/
 
 #grade-chart {
     max-width: 500px;
