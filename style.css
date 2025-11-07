@@ -76,13 +76,12 @@ li {
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
-    font-size: 16px;
     color: white;
 }
 
 .about-link button {
     padding: 5px 15px;
-    font-size: 12px;
+    font-size: 16px;
     background-color: #6c757d;
     opacity: 0.8;
 }
