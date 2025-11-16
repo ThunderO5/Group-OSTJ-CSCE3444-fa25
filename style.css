@@ -94,3 +94,13 @@ li {
     margin: 20px auto;
 }
 
+.host-vote-meta {
+    margin: 15px 0;
+    text-align: left;
+}
+
+.host-vote-meta label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
