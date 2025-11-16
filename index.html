@@ -65,6 +65,15 @@
              <input type="text" id="answer-input" placeholder="Your Answer"> 
           </label>
             <button id="submit-answer-btn">Submit</button>
+            <div id="betting-controls" class="hidden">
+                <h3>Challenge Bet</h3>
+                <p class="helper-text">Optional: wager part of your score for a boosted reward if you're correct.</p>
+                <div class="bet-input-group">
+                    <input type="number" id="bet-input" min="0" value="0">
+                    <button id="place-bet-btn">Place Bet</button>
+                </div>
+                <p id="bet-status" class="helper-text"></p>
+            </div>
             <div id="voting-section" class="hidden">
                 <h3>Vote for the best answer</h3>
                 <p class="helper-text">You cannot vote for your own answer.</p>
