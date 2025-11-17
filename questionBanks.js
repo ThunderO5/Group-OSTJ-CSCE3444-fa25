@@ -11,7 +11,7 @@ window.QUESTION_BANKS = {
     ],
     science: [
       { question: "What gas do plants release during photosynthesis?", answer: "Oxygen" },
-      { question: "Which planet is known as the Red Planet?", answer: "Mars" },
+      { question: "Which planet is known as the Red Planet?", answer: "Mars", image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/OSIRIS_Mars_true_color.jpg/300px-OSIRIS_Mars_true_color.jpg" },
       { question: "What is the chemical symbol for gold?", answer: "Au" },
       { question: "Which organ pumps blood throughout the human body?", answer: "The heart" },
       { question: "What is the process by which liquids turn into gas called?", answer: "Evaporation" }

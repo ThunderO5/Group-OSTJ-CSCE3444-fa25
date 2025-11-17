@@ -82,7 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const BET_PENALTY_MULTIPLIER = 0.5;
 
-
+    // Store loaded questions from question bank (preserves image data)
+    let loadedQuestions = null;
 
     function populateQuestionBanks() {
 
@@ -125,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!value) {
 
           textarea.value = '';
-
+          loadedQuestions = null;
           return;
 
         }
@@ -135,6 +136,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const [template, category] = value.split('.');
 
         const bank = window.QUESTION_BANKS?.[template]?.[category] || [];
+        //Stores full question data including images
+        loadedQuestions = bank; 
 
         textarea.value = bank.map(q => `${q.question} | ${q.answer}`).join('\n');
 
@@ -186,77 +189,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
         gamePin = Math.floor(1000 + Math.random() * 9000).toString();
 
-        const textarea = document.getElementById('questions-input');
+        let questions = [];
 
-        const questionsRaw = textarea ? textarea.value : '';
+        // Priority 1: Use loaded questions from question bank (preserves images)
+        if (loadedQuestions && loadedQuestions.length > 0) {
+            questions = loadedQuestions.map(item => ({
+                question: item.question,
+                answer: item.answer,
+                image: item.image,
+                playerAnswers: {},
+                answerTimes: {},
+                bets: {},
+                votes: {},
+                phase: 'collectingAnswers',
+                anonymousVoting: false,
+                revealVotes: false,
+                votingEndsAt: null
+            }));
+            loadedQuestions = null; // Reset after using
+        } else {
+            // Priority 2: Parse from textarea (manual entry)
+            const textarea = document.getElementById('questions-input');
+            const questionsRaw = textarea ? textarea.value : '';
+            questions = questionsRaw
+              .split('\n')
+              .filter(line => line.includes('|'))
+              .map(line => {
+                  const [question, answer] = line.split('|');
+                  return {
+                      question: question.trim(),
+                      answer: answer.trim(),
+                      playerAnswers: {},
+                      answerTimes: {},
+                      bets: {},
+                      votes: {},
+                      phase: 'collectingAnswers',
+                      anonymousVoting: false,
+                      revealVotes: false,
+                      votingEndsAt: null
+                  };
+              });
 
-        let questions = questionsRaw
-
-          .split('\n')
-
-          .filter(line => line.includes('|'))
-
-          .map(line => {
-
-              const [question, answer] = line.split('|');
-
-              return {
-
-                  question: question.trim(),
-
-                  answer: answer.trim(),
-
-                  playerAnswers: {},
-
-                  answerTimes: {},
-
-                  bets: {},
-
-                  votes: {},
-
-                  phase: 'collectingAnswers',
-
-                  anonymousVoting: false,
-
-                  revealVotes: false,
-
-                  votingEndsAt: null
-
-              };
-
-          });
-
-
-
-      if (questions.length === 0 && bankSelect && bankSelect.value) {
-
-          const [template, category] = bankSelect.value.split('.');
-
-          questions = (window.QUESTION_BANKS?.[template]?.[category] || []).map(item => ({
-
-              question: item.question,
-
-              answer: item.answer,
-
-              playerAnswers: {},
-
-              answerTimes: {},
-
-              bets: {},
-
-              votes: {},
-
-              phase: 'collectingAnswers',
-
-              anonymousVoting: false,
-
-              revealVotes: false,
-
-              votingEndsAt: null
-
-          }));
-
-      }
+            // Priority 3: Fallback to selected question bank if textarea is empty
+            if (questions.length === 0 && bankSelect && bankSelect.value) {
+                const [template, category] = bankSelect.value.split('.');
+                questions = (window.QUESTION_BANKS?.[template]?.[category] || []).map(item => ({
+                    question: item.question,
+                    answer: item.answer,
+                    image: item.image,
+                    playerAnswers: {},
+                    answerTimes: {},
+                    bets: {},
+                    votes: {},
+                    phase: 'collectingAnswers',
+                    anonymousVoting: false,
+                    revealVotes: false,
+                    votingEndsAt: null
+                }));
+            }
+        }
 
         if (questions.length === 0) {
 
@@ -381,6 +372,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         document.getElementById('host-question-text').textContent = question.question;
+
+        // Display image if question has one
+        displayQuestionImageForHost(question);
 
 
 
@@ -731,6 +725,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
 
                     questionText.textContent = question.question;
+
+                    // Display image if question has one
+                    displayQuestionImage(question);
 
                     if (question.playerAnswers[playerName]) {
 
@@ -1656,6 +1653,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
 
+    function displayQuestionImage(question) {
+    // Remove any existing image
+    let existingImg = document.querySelector('#game-page-player .question-image');
+    if (existingImg) {
+        existingImg.remove();
+    }
+
+    // If question has an image, display it
+    if (question.image) {
+        const img = document.createElement('img');
+        img.src = question.image;
+        img.alt = 'Question image';
+        img.className = 'question-image';
+        img.style.maxWidth = '400px';
+        img.style.width = '100%';
+        img.style.borderRadius = '8px';
+        img.style.marginTop = '10px';
+        
+        // Insert after question text
+        const questionElement = document.getElementById('question-text');
+        questionElement.parentNode.insertBefore(img, questionElement.nextSibling);
+        }
+    }
+
+function displayQuestionImageForHost(question) {
+    // Remove any existing image
+    let existingImg = document.querySelector('#game-page-host .question-image');
+    if (existingImg) {
+        existingImg.remove();
+        }
+
+    // If question has an image, display it
+    if (question.image) {
+        const img = document.createElement('img');
+        img.src = question.image;
+        img.alt = 'Question image';
+        img.className = 'question-image';
+        img.style.maxWidth = '400px';
+        img.style.width = '100%';
+        img.style.borderRadius = '8px';
+        img.style.marginTop = '10px';
+        
+        // Insert after question text
+        const questionElement = document.getElementById('host-question-text');
+        questionElement.parentNode.insertBefore(img, questionElement.nextSibling);
+        }
+    }
 
 
 });
