@@ -1,4 +1,23 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+
+    // Initialize profanity filter
+    let badWordsList = [];
+    
+    try {
+        const response = await fetch('https://raw.githubusercontent.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words/master/en');
+        const text = await response.text();
+        badWordsList = text.split('\n').map(word => word.trim().toLowerCase()).filter(word => word.length > 0);
+    } catch (error) {
+        console.warn('Could not load profanity filter, allowing all names');
+    }
+    
+    const filter = {
+        isProfane: (text) => {
+            if (badWordsList.length === 0) return false; // If list didn't load, allow everything
+            const lowerText = text.toLowerCase();
+            return badWordsList.some(word => lowerText.includes(word));
+        }
+    };
 
     // Page Elements
 
@@ -514,6 +533,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         }
 
+        // Check for inappropriate names
+        if (filter.isProfane(playerName)) {
+            alert('Please choose an appropriate name.');
+            return;
+        }
 
 
         const gameState = JSON.parse(localStorage.getItem(gamePin));
